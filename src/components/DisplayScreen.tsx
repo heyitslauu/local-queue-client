@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -23,7 +23,6 @@ interface QueueItem {
 }
 
 const DisplayScreen = () => {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [displayState, setDisplayState] = useState<DisplayState | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -68,8 +67,6 @@ const DisplayScreen = () => {
     socketInstance.on("allQueues", (queues: QueueItem[]) => {
       console.log("All queues:", queues);
     });
-
-    setSocket(socketInstance);
 
     // Initial fetch
     fetchDisplayState();
@@ -171,7 +168,7 @@ const DisplayScreen = () => {
                   service.serving.map((queueId) => (
                     <Card
                       key={queueId}
-                      className="animate-pulse rounded-lg bg-gradient-to-r from-acemc-green to-acemc-green-light border-0 shadow-md"
+                      className="animate-pulse rounded-lg  from-acemc-green to-acemc-green-light border-0 shadow-md"
                     >
                       <CardContent className="p-4 text-center">
                         <span className="text-3xl font-bold text-white">
