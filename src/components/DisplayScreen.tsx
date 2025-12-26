@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface ServiceStatus {
   counterType: string;
@@ -25,6 +26,7 @@ const DisplayScreen = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [displayState, setDisplayState] = useState<DisplayState | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     // Connect to WebSocket server
@@ -78,6 +80,15 @@ const DisplayScreen = () => {
     };
   }, []);
 
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const fetchDisplayState = async () => {
     try {
       const response = await fetch("http://localhost:3000/queue");
@@ -97,12 +108,12 @@ const DisplayScreen = () => {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-50 via-emerald-50 to-teal-50 p-8">
+    <div className="min-h-screen  p-8">
       {/* Connection Status */}
       <div className="mb-4 flex items-center justify-end gap-2">
         <div
           className={`h-3 w-3 rounded-full ${
-            isConnected ? "bg-[#136334]" : "bg-[#A21926]"
+            isConnected ? "bg-acemc-green" : "bg-acemc-red"
           }`}
         />
         <span className="text-sm font-medium text-slate-700">
@@ -112,89 +123,127 @@ const DisplayScreen = () => {
 
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="text-5xl font-bold text-[#136334]">
-          ACEMC Queue Display
-        </h1>
-        <p className="mt-2 text-lg text-slate-600">
-          Now Serving - {new Date(displayState.updatedAt).toLocaleTimeString()}
-        </p>
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <img
+            src="https://i0.wp.com/acemclegazpi.com/wp-content/uploads/2023/07/cropped-cropped-Modern_annual_report__3__-_Copy-removebg-preview.png?fit=289%2C115&ssl=1"
+            alt="ACE Medical Center Logo"
+            className="h-20 w-auto"
+          />
+          <div className="text-left">
+            <h1 className="text-4xl font-bold text-acemc-green">
+              ACE Medical Center Legazpi
+            </h1>
+            <p className="text-sm font-light text-slate-500 mt-1">
+              Daraga Legazpi Diversion Road, Brgy. Bogtong, Legazpi City, Albay
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-3 mt-4">
+          <div className="text-5xl font-semibold text-slate-600 bg-slate-100 px-4 py-2 rounded-lg">
+            {currentTime.toLocaleTimeString()}
+          </div>
+        </div>
       </div>
 
-      {/* Services Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {displayState.services.map((service) => (
-          <div
-            key={service.counterType}
-            className="rounded-2xl bg-white p-6 shadow-xl border-2 border-[#136334]/20 transition-transform hover:scale-105"
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-[#136334]">
-                {service.counterType}
-              </h2>
-              <div className="rounded-full bg-[#136334]/10 px-3 py-1">
-                <span className="text-sm font-semibold text-[#136334]">
-                  {service.serving.length > 0 ? "SERVING" : "IDLE"}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {service.serving.length > 0 ? (
-                service.serving.map((queueId) => (
-                  <Card
-                    key={queueId}
-                    className="animate-pulse rounded-lg bg-gradient-to-r from-[#136334] to-[#1a7d42] border-0 shadow-md"
-                  >
-                    <CardContent className="p-4 text-center">
-                      <span className="text-3xl font-bold text-white">
-                        {queueId}
-                      </span>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="rounded-lg border-2 border-dashed border-slate-300 p-4 text-center">
-                  <span className="text-lg text-slate-400">
-                    No queue serving
+      {/* Main Content Grid: 40-60 split */}
+      <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] gap-6">
+        {/* Left Column: Services (40%) */}
+        <div className="space-y-6">
+          {/* Services Stack */}
+          {displayState.services.map((service) => (
+            <div
+              key={service.counterType}
+              className="rounded-2xl bg-white p-6 shadow-xl border-2 border-acemc-green/20"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-acemc-green">
+                  {service.counterType}
+                </h2>
+                <div className="rounded-full bg-acemc-green/10 px-3 py-1">
+                  <span className="text-sm font-semibold text-acemc-green">
+                    {service.serving.length > 0 ? "SERVING" : "IDLE"}
                   </span>
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+              </div>
 
-      {/* Waiting Queue */}
-      <div className="mt-8 text-center">
-        <div className="inline-block rounded-2xl bg-white px-8 py-4 shadow-xl border-2 border-[#136334]/20 min-w-[300px]">
-          <p className="text-lg font-semibold text-slate-600 mb-3">
-            Waiting in Queue ({displayState.waiting.length})
-          </p>
-          {displayState.waiting.length > 0 ? (
-            <div className="space-y-2">
-              {displayState.waiting.slice(0, 5).map((queueId) => (
-                <Card
-                  key={queueId}
-                  className="rounded-lg bg-slate-50 border border-slate-200"
-                >
-                  <CardContent className="p-3 text-center">
-                    <span className="text-xl font-semibold text-[#136334]">
-                      {queueId}
+              <div className="space-y-3">
+                {service.serving.length > 0 ? (
+                  service.serving.map((queueId) => (
+                    <Card
+                      key={queueId}
+                      className="animate-pulse rounded-lg bg-gradient-to-r from-acemc-green to-acemc-green-light border-0 shadow-md"
+                    >
+                      <CardContent className="p-4 text-center">
+                        <span className="text-3xl font-bold text-white">
+                          {queueId}
+                        </span>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="rounded-lg border-2 border-dashed border-slate-300 p-4 text-center">
+                    <span className="text-lg text-slate-400">
+                      No clients being served
                     </span>
-                  </CardContent>
-                </Card>
-              ))}
-              {displayState.waiting.length > 5 && (
-                <div className="text-lg font-medium text-[#A21926] pt-2">
-                  .. and {displayState.waiting.length - 5} more
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
-          ) : (
-            <p className="text-2xl font-bold text-slate-400">
-              No waiting queues
-            </p>
-          )}
+          ))}
+
+          {/* Waiting Queue */}
+          <div className="rounded-xl bg-white p-4 shadow-lg border-2 border-acemc-green/20">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-slate-600">
+                Waiting in Queue
+              </p>
+              <Badge className="bg-acemc-red text-white">
+                {displayState.waiting.length}
+              </Badge>
+            </div>
+            {displayState.waiting.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {displayState.waiting.slice(0, 5).map((queueId) => (
+                  <Badge
+                    key={queueId}
+                    variant="outline"
+                    className="text-acemc-green border-acemc-green font-medium"
+                  >
+                    {queueId}
+                  </Badge>
+                ))}
+                {displayState.waiting.length > 5 && (
+                  <Badge variant="secondary" className="text-white ">
+                    +{displayState.waiting.length - 5} more
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">No waiting queues</p>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Video (60%) */}
+        <div className="rounded-2xl bg-white p-6 shadow-xl border-2 border-acemc-green/20">
+          <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden">
+            <video
+              className="w-full h-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+            >
+              <source
+                src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                type="video/mp4"
+              />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <p className="text-center text-slate-500 mt-4 text-sm">
+            Healthcare Information Video
+          </p>
         </div>
       </div>
     </div>
