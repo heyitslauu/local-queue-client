@@ -168,7 +168,7 @@ const DisplayScreen = () => {
                   service.serving.map((queueId) => (
                     <Card
                       key={queueId}
-                      className="animate-pulse rounded-lg  from-acemc-green to-acemc-green-light border-0 shadow-md"
+                      className="animate-pulse rounded-lg  bg-acemc-green to-acemc-green-light border-0 shadow-md"
                     >
                       <CardContent className="p-4 text-center">
                         <span className="text-3xl font-bold text-white">
